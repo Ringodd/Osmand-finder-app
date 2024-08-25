@@ -1,5 +1,6 @@
 package com.ringo.osmandfinder.widgets
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -26,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,6 +46,7 @@ fun DeviceScreen(
             .fillMaxSize()
     ) { item->
         Column(Modifier.padding(item)){
+            val context = LocalContext.current
         BluetoothDeviceList(
             pairedDevices = state.pairedDevices,
             scannedDevices = state.scannedDevices,
@@ -87,18 +90,21 @@ fun BluetoothDeviceList(
                 modifier = Modifier.padding(16.dp)
             )
         }
-        items(pairedDevices) { device ->
+        items(pairedDevices.filter { device -> device.name!!.startsWith("Osmand finder") }) { device ->
             var text by remember {
                 mutableStateOf("")
             }
             var isPressed by remember {
                 mutableStateOf(false)
             }
+            val context = LocalContext.current
             Row(modifier = Modifier
                 .fillMaxWidth()
                 .pointerInput(Unit) {
                     detectTapGestures(
-                        onTap = { onClick },
+                        onTap = {
+                            Toast.makeText(context, "${device.name} - ${device.address}", Toast.LENGTH_SHORT).show()
+                        },
                         onLongPress = {
                             isPressed = !isPressed
                             if (isPressed) {
@@ -127,13 +133,37 @@ fun BluetoothDeviceList(
             )
         }
         items(scannedDevices) { device ->
-            Text(
-                text = device.name ?: "(No name)",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onClick(device) }
-                    .padding(16.dp)
-            )
+            var text by remember {
+                mutableStateOf("")
+            }
+            var isPressed by remember {
+                mutableStateOf(false)
+            }
+            val context = LocalContext.current
+            Row(modifier = Modifier
+                .fillMaxWidth()
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onTap = {
+                            Toast.makeText(context, "${device.name ?: "Test"} - ${device.address}", Toast.LENGTH_SHORT).show()
+                        },
+                        onLongPress = {
+                            isPressed = !isPressed
+                            if (isPressed) {
+                                text = device.address
+                            } else text = ""
+                        }
+                    )
+                }
+                .padding(16.dp)) {
+                Text(
+                    text = device.name ?: "(No name)",
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(
+                    text = text,
+                )
+            }
         }
     }
 }

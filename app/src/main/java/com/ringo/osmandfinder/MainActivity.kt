@@ -1,11 +1,13 @@
 package com.ringo.osmandfinder
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -22,6 +24,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.ringo.osmandfinder.bluetooth.domain.BluetoothDevice
 import com.ringo.osmandfinder.db.BluetoothViewModel
 import com.ringo.osmandfinder.ui.theme.OsmandFinderTheme
 import com.ringo.osmandfinder.widgets.DeviceScreen
@@ -39,6 +42,7 @@ class MainActivity : ComponentActivity() {
     private val isBluetoothEnabled: Boolean
         get() = bluetoothAdapter?.isEnabled == true
 
+    @SuppressLint("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
         val enablebBluetoothLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
