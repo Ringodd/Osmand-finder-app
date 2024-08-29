@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -26,8 +27,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import com.ringo.osmandfinder.bluetooth.domain.BluetoothDevice
+import com.ringo.osmandfinder.bluetooth.domain.ConnectionResult
 import com.ringo.osmandfinder.db.BluetoothViewModel
 import com.ringo.osmandfinder.widgets.DeviceScreen
+import com.ringo.osmandfinder.widgets.RequestScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -49,7 +57,7 @@ class MainActivity : ComponentActivity() {
         val enableBluetoothLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { /* Not needed */ }
-
+        val navController = NavHostController(context = applicationContext)
         val permissionLauncher = registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
         ) { perms ->
@@ -71,12 +79,18 @@ class MainActivity : ComponentActivity() {
                     Manifest.permission.BLUETOOTH_CONNECT,
                 )
             )
+        }else {
+            permissionLauncher.launch(
+                arrayOf(
+                    Manifest.permission.BLUETOOTH_ADMIN,
+                    Manifest.permission.BLUETOOTH,
+                )
+            )
         }
 
         setContent {
                 val viewModel = hiltViewModel<BluetoothViewModel>()
                 val state by viewModel.state.collectAsState()
-
                 LaunchedEffect(key1 = state.errorMessage) {
                     state.errorMessage?.let { message ->
                         Toast.makeText(
@@ -97,8 +111,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                Surface(
-                ) {
+
                     when {
                         state.isConnecting -> {
                             Column(
@@ -108,7 +121,17 @@ class MainActivity : ComponentActivity() {
                             ) {
                                 CircularProgressIndicator()
                                 Text(text = "Connecting...")
+                                Button(onClick = viewModel::disconnectFromDevice) {
+
+                                }
                             }
+                        }
+                        state.isConnected -> {
+                            RequestScreen(
+                                state = state,
+                                onDisconnect = viewModel::disconnectFromDevice,
+                                onSendMessage = viewModel::sendRequest
+                            )
                         }
                         else -> {
                             DeviceScreen(
@@ -116,14 +139,16 @@ class MainActivity : ComponentActivity() {
                                 onStartScan = viewModel::startScan,
                                 onStopScan = viewModel::stopScan,
                                 onDeviceClick = viewModel::connectToDevice,
-                                onStartServer = viewModel::waitForIncomingConnections
+                                onStartServer = viewModel::waitForIncomingConnections,
                             )
                         }
                     }
+                /*val finder = BluetoothDevice("Osmand finder","08:D1:F9:29:9A:C6")
+                if (finder){}*/
                 }
             }
         }
-    }
+
 
 
 

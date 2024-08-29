@@ -1,5 +1,6 @@
 package com.ringo.osmandfinder.bluetooth.domain
 
+import com.ringo.osmandfinder.data.classes.BluetoothRequest
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,6 +16,8 @@ interface BluetoothController {
 
     fun startBluetoothServer():Flow<ConnectionResult>
     fun connectToDevice(device:BluetoothDevice):Flow<ConnectionResult>
+
+    suspend fun trySendRequest(message:String): BluetoothRequest?
 
     fun closeConnection()
 
