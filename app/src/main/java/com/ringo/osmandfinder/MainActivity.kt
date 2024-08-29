@@ -1,6 +1,7 @@
 package com.ringo.osmandfinder
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.content.Intent
@@ -23,6 +24,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -57,7 +61,7 @@ class MainActivity : ComponentActivity() {
         val enableBluetoothLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { /* Not needed */ }
-        val navController = NavHostController(context = applicationContext)
+
         val permissionLauncher = registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
         ) { perms ->
@@ -79,18 +83,12 @@ class MainActivity : ComponentActivity() {
                     Manifest.permission.BLUETOOTH_CONNECT,
                 )
             )
-        }else {
-            permissionLauncher.launch(
-                arrayOf(
-                    Manifest.permission.BLUETOOTH_ADMIN,
-                    Manifest.permission.BLUETOOTH,
-                )
-            )
         }
 
         setContent {
                 val viewModel = hiltViewModel<BluetoothViewModel>()
                 val state by viewModel.state.collectAsState()
+
                 LaunchedEffect(key1 = state.errorMessage) {
                     state.errorMessage?.let { message ->
                         Toast.makeText(
@@ -121,9 +119,6 @@ class MainActivity : ComponentActivity() {
                             ) {
                                 CircularProgressIndicator()
                                 Text(text = "Connecting...")
-                                Button(onClick = viewModel::disconnectFromDevice) {
-
-                                }
                             }
                         }
                         state.isConnected -> {
@@ -139,15 +134,14 @@ class MainActivity : ComponentActivity() {
                                 onStartScan = viewModel::startScan,
                                 onStopScan = viewModel::stopScan,
                                 onDeviceClick = viewModel::connectToDevice,
-                                onStartServer = viewModel::waitForIncomingConnections,
+                                onStartServer = viewModel::waitForIncomingConnections
                             )
                         }
                     }
-                /*val finder = BluetoothDevice("Osmand finder","08:D1:F9:29:9A:C6")
-                if (finder){}*/
                 }
             }
         }
+
 
 
 

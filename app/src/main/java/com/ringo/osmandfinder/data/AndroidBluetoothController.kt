@@ -134,11 +134,12 @@ class AndroidBluetoothController(
                     val service = BluetoothDataTransferService(it)
                     dataTransferService = service
 
-                    emitAll(service
-                        .listenForIncomingRequest()
-                        .map {
-                            ConnectionResult.TransferSucceeded(it)
-                        }
+                    emitAll(
+                        service
+                            .listenForIncomingRequest()
+                            .map {
+                                ConnectionResult.TransferSucceeded(it)
+                            }
                     )
                 }
             }
@@ -179,8 +180,28 @@ class AndroidBluetoothController(
                 }
             }
         }.onCompletion {
-            //closeConnection()
+            closeConnection()
         }.flowOn(Dispatchers.IO)
+    }
+
+    override suspend fun trySendRequest(message: String): BluetoothRequest? {
+        if(!hasPermission(Manifest.permission.BLUETOOTH_CONNECT)) {
+            return null
+        }
+
+        if(dataTransferService == null) {
+            return null
+        }
+
+        val bluetoothRequest = BluetoothRequest(
+            message = message,
+            senderName = bluetoothAdapter?.name ?: "Unknown name",
+            isFromLocalUser = true
+        )
+
+        dataTransferService?.sendRequest(bluetoothRequest.toByteArray())
+
+        return bluetoothRequest
     }
 
     override fun closeConnection() {
@@ -188,25 +209,6 @@ class AndroidBluetoothController(
         currentServerSocket?.close()
         currentClientSocket = null
         currentServerSocket = null
-    }
-
-    override suspend fun trySendRequest(message: String): BluetoothRequest? {
-        if (!hasPermission(Manifest.permission.BLUETOOTH_CONNECT)){
-            return null
-        }
-
-        if (dataTransferService == null){
-            return null
-        }
-        val bluetoothRequest = BluetoothRequest(
-            message = message,
-            isFromArduino = false,
-            isSent = false
-        )
-
-        dataTransferService?.sendRequest(message.toByteArray())
-
-        return bluetoothRequest
     }
 
     override fun release() {

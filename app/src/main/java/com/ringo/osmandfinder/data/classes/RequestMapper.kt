@@ -1,15 +1,15 @@
 package com.ringo.osmandfinder.data.classes
 
-fun String.toBluetoothRequest(isFromArduino:Boolean): BluetoothRequest{
-    val message = substringBeforeLast("#")
-    val status = substringAfter("#")
+fun String.toBluetoothRequest(isFromLocalUser: Boolean): BluetoothRequest {
+    val name = substringBeforeLast("#")
+    val message = substringAfter("#")
     return BluetoothRequest(
         message = message,
-        isSent = status.toBoolean(),
-        isFromArduino = isFromArduino
+        senderName = name,
+        isFromLocalUser = isFromLocalUser
     )
 }
 
-fun BluetoothRequest.toByteArray():ByteArray {
-    return "$message#$isSent".encodeToByteArray()
+fun BluetoothRequest.toByteArray(): ByteArray {
+    return "$senderName#$message".encodeToByteArray()
 }

@@ -55,12 +55,13 @@ fun DeviceScreen(
     }
 }
 
+@Suppress("UNUSED_EXPRESSION")
 @Composable
 fun BluetoothDeviceList(
     pairedDevices: List<BluetoothDevice>,
     scannedDevices: List<BluetoothDevice>,
     onClick: (BluetoothDevice) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
 
@@ -101,14 +102,11 @@ fun BluetoothDeviceList(
                         .fillMaxWidth()
                         .clickable {
                             onClick(device)
-                            Toast
-                                .makeText(context, device.address, Toast.LENGTH_SHORT)
-                                .show()
                         }
                         .padding(16.dp)
                 )
             }
         }
-        else item { Text(text = "Ничего не найдено") }
+        else item { Text(text = "Ничего не найдено", modifier = Modifier. padding(16.dp))}
     }
 }

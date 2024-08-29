@@ -13,34 +13,35 @@ import java.io.IOException
 class BluetoothDataTransferService(
     private val socket: BluetoothSocket
 ) {
-    fun listenForIncomingRequest():Flow<BluetoothRequest>{
+    fun listenForIncomingRequest(): Flow<BluetoothRequest> {
         return flow {
-            if (!socket.isConnected) {
+            if(!socket.isConnected) {
                 return@flow
             }
-            val buffer = ByteArray(2048)
-            while (true) {
+            val buffer = ByteArray(1024)
+            while(true) {
                 val byteCount = try {
                     socket.inputStream.read(buffer)
-                } catch (e: IOException) {
+                } catch(e: IOException) {
                     throw TransferFailedException()
                 }
+
                 emit(
                     buffer.decodeToString(
-                        endIndex = byteCount)
-                        .toBluetoothRequest(isFromArduino = true)
+                        endIndex = byteCount
+                    ).toBluetoothRequest(
+                        isFromLocalUser = false
+                    )
                 )
-
             }
-        }
-            .flowOn(Dispatchers.IO)
+        }.flowOn(Dispatchers.IO)
     }
 
-    suspend fun sendRequest(bytes:ByteArray):Boolean{
-        return withContext(Dispatchers.IO){
+    suspend fun sendRequest(bytes: ByteArray): Boolean {
+        return withContext(Dispatchers.IO) {
             try {
                 socket.outputStream.write(bytes)
-            } catch (e: IOException){
+            } catch(e: IOException) {
                 e.printStackTrace()
                 return@withContext false
             }

@@ -1,8 +1,10 @@
 package com.ringo.osmandfinder.db
 
+import androidx.compose.runtime.MutableState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ringo.osmandfinder.bluetooth.domain.BluetoothController
+import com.ringo.osmandfinder.bluetooth.domain.BluetoothDevice
 import com.ringo.osmandfinder.bluetooth.domain.BluetoothDeviceDomain
 import com.ringo.osmandfinder.bluetooth.domain.ConnectionResult
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,11 +24,11 @@ class BluetoothViewModel @Inject constructor(
         bluetoothController.scannedDevices,
         bluetoothController.pairedDevices,
         _state
-    ) { scannedDevices, pairedDevices, state, ->
+    ) { scannedDevices, pairedDevices, state ->
         state.copy(
             scannedDevices = scannedDevices,
             pairedDevices = pairedDevices,
-            messages = if (state.isConnected) state.messages else emptyList()
+            messages = if(state.isConnected) state.messages else emptyList()
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _state.value)
 
@@ -42,10 +44,6 @@ class BluetoothViewModel @Inject constructor(
                 errorMessage = error
             ) }
         }.launchIn(viewModelScope)
-    }
-
-    fun closeConnection(){
-        bluetoothController.closeConnection()
     }
 
     fun connectToDevice(device: BluetoothDeviceDomain) {
@@ -71,14 +69,13 @@ class BluetoothViewModel @Inject constructor(
             .listen()
     }
 
-    fun sendRequest(message:String){
+    fun sendRequest(message: String) {
         viewModelScope.launch {
-            val bluetoothRequest = bluetoothController.trySendRequest(message)
-            if (bluetoothRequest != null){
-                _state.update {it.copy(
-                    messages = it.messages + bluetoothRequest
-                    )
-                }
+            val request = bluetoothController.trySendRequest(message)
+            if(request != null) {
+                _state.update { it.copy(
+                    messages = it.messages + request
+                ) }
             }
         }
     }
@@ -101,11 +98,10 @@ class BluetoothViewModel @Inject constructor(
                         errorMessage = null
                     ) }
                 }
-                is ConnectionResult.TransferSucceeded ->{
-                    _state.update {it.copy(
+                is ConnectionResult.TransferSucceeded -> {
+                    _state.update { it.copy(
                         messages = it.messages + result.request
-                        )
-                    }
+                    ) }
                 }
                 is ConnectionResult.Error -> {
                     _state.update { it.copy(
